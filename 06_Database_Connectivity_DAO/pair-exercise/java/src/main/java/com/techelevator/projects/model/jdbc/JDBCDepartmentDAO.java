@@ -9,6 +9,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.techelevator.projects.model.Department;
 import com.techelevator.projects.model.DepartmentDAO;
+import org.springframework.jdbc.support.rowset.SqlRowSet;
 
 public class JDBCDepartmentDAO implements DepartmentDAO {
 	
@@ -20,12 +21,26 @@ public class JDBCDepartmentDAO implements DepartmentDAO {
 
 	@Override
 	public List<Department> getAllDepartments() {
-		return new ArrayList<>();
+		List<Department> result = new ArrayList<>();
+		String query = "SELECT department_id, name FROM department;";
+		SqlRowSet rowSet = jdbcTemplate.queryForRowSet(query);
+
+		while (rowSet.next()) {
+			result.add(mapRowToDepartment(rowSet));
+		}
+		return result;
 	}
 
 	@Override
 	public List<Department> searchDepartmentsByName(String nameSearch) {
-		return new ArrayList<>();
+		List<Department> result = new ArrayList<>();
+		String query = "SELECT department_id, name FROM department WHERE name LIKE ?;";
+		SqlRowSet rowSet = jdbcTemplate.queryForRowSet(query, "%" + nameSearch + "%");
+
+		while (rowSet.next()) {
+			result.add(mapRowToDepartment(rowSet));
+		}
+		return result;
 	}
 
 	@Override
@@ -40,7 +55,25 @@ public class JDBCDepartmentDAO implements DepartmentDAO {
 
 	@Override
 	public Department getDepartmentById(Long id) {
-		return null;
+		Department result = new Department();
+		String query = "SELECT department_id, name FROM department WHERE department_id = ?;";
+		SqlRowSet rowSet = jdbcTemplate.queryForRowSet(query, id);
+
+		if (rowSet.next()) { //Check if our query returned a row
+			result = mapRowToDepartment(rowSet);
+		} else {
+			System.out.println("No department found with that ID");
+			result = null;
+		}
+
+		return result;
+	}
+
+	private Department mapRowToDepartment(SqlRowSet rowSet) {
+		Department department = new Department();
+		department.setId(rowSet.getLong("department_id"));
+		department.setName(rowSet.getString("name"));
+		return department;
 	}
 
 }
