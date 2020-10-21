@@ -1,14 +1,11 @@
 package com.techelevator.projects.model.jdbc;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
 import java.util.ArrayList;
-import java.util.Date;
+import java.sql.Date;
 import java.util.List;
 
 import javax.sql.DataSource;
 
-import com.techelevator.projects.model.Employee;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import com.techelevator.projects.model.Project;
@@ -32,22 +29,23 @@ public class JDBCProjectDAO implements ProjectDAO {
 		SqlRowSet rowSet = jdbcTemplate.queryForRowSet(query);
 
 		while (rowSet.next()) {
-			result.add(mapRowToProejct(rowSet));
+			result.add(mapRowToProject(rowSet));
 		}
 		return result;
 	}
 
 	@Override
 	public void removeEmployeeFromProject(Long projectId, Long employeeId) {
-		
+		jdbcTemplate.update("DELETE FROM project_employee WHERE project_id = ? AND employee_id = ?", projectId, employeeId);
 	}
 
 	@Override
 	public void addEmployeeToProject(Long projectId, Long employeeId) {
-		
+		String query = "INSERT INTO project_employee (project_id, employee_id) VALUES (?, ?);";
+		jdbcTemplate.update(query, projectId, employeeId);
 	}
 
-	private Project mapRowToProejct(SqlRowSet rowSet) {
+	private Project mapRowToProject(SqlRowSet rowSet) {
 		Project project = new Project();
 		Date startDate = rowSet.getDate("from_date");
 		Date endDate = rowSet.getDate("to_date");
@@ -55,10 +53,10 @@ public class JDBCProjectDAO implements ProjectDAO {
 		project.setId(rowSet.getLong("project_id"));
 		project.setName(rowSet.getString("name"));
 		if (startDate != null) {
-			project.setStartDate(startDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+			project.setStartDate(startDate.toLocalDate());
 		}
 		if (endDate != null) {
-			project.setEndDate(endDate.toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+			project.setEndDate(endDate.toLocalDate());
 		}
 		return project;
 	}

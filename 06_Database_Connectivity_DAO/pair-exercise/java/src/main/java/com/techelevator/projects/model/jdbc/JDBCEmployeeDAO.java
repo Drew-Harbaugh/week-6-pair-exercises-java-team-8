@@ -63,7 +63,7 @@ public class JDBCEmployeeDAO implements EmployeeDAO {
 	@Override
 	public List<Employee> getEmployeesWithoutProjects() {
 		List<Employee> result = new ArrayList<>();
-		String query = "SELECT *\n" + //Ask David about this tomorrow, getting an error when we type out all of the fields
+		String query = "SELECT employee.employee_id, department_id, first_name, last_name, birth_date, gender, hire_date\n" + //Ask David about this tomorrow, getting an error when we type out all of the fields
 				"FROM employee\n" +
 				"LEFT JOIN project_employee ON employee.employee_id = project_employee.employee_id\n" +
 				"WHERE project_id IS NULL;";
@@ -78,7 +78,7 @@ public class JDBCEmployeeDAO implements EmployeeDAO {
 	@Override
 	public List<Employee> getEmployeesByProjectId(Long projectId) {
 		List<Employee> result = new ArrayList<>();
-		String query = "SELECT *\n" + //Ask David about this tomorrow, getting an error when we type out all of the fields
+		String query = "SELECT employee.employee_id, department_id, first_name, last_name, birth_date, gender, hire_date\n" + //Ask David about this tomorrow, getting an error when we type out all of the fields
 				"FROM employee\n" +
 				"LEFT JOIN project_employee ON employee.employee_id = project_employee.employee_id\n" +
 				"WHERE project_id = ?;";
@@ -92,7 +92,8 @@ public class JDBCEmployeeDAO implements EmployeeDAO {
 
 	@Override
 	public void changeEmployeeDepartment(Long employeeId, Long departmentId) {
-		
+		String query = "UPDATE employee SET department_id = ? WHERE employee_id = ?;";
+		jdbcTemplate.update(query, departmentId, employeeId);
 	}
 
 	private Employee mapRowToEmployee(SqlRowSet rowSet) {
