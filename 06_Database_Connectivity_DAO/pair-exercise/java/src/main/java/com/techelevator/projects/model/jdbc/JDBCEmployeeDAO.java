@@ -35,7 +35,9 @@ public class JDBCEmployeeDAO implements EmployeeDAO {
 	@Override
 	public List<Employee> searchEmployeesByName(String firstNameSearch, String lastNameSearch) {
 		List<Employee> result = new ArrayList<>();
-		String query = "SELECT employee_id, department_id, first_name, last_name, birth_date, gender, hire_date FROM employee WHERE first_name ILIKE ? OR last_name ILIKE ?;";
+		String query = "SELECT employee_id, department_id, first_name, last_name, birth_date, gender, hire_date" +
+				" FROM employee" +
+				" WHERE first_name ILIKE ? OR last_name ILIKE ?;";
 		SqlRowSet rowSet = jdbcTemplate.queryForRowSet(query, "%" + firstNameSearch + "%", "%" + lastNameSearch + "%");
 
 		while (rowSet.next()) {
@@ -46,17 +48,46 @@ public class JDBCEmployeeDAO implements EmployeeDAO {
 
 	@Override
 	public List<Employee> getEmployeesByDepartmentId(long id) {
-		return new ArrayList<>();
+		List<Employee> result = new ArrayList<>();
+		String query = "SELECT employee_id, department_id, first_name, last_name, birth_date, gender, hire_date" +
+				" FROM employee" +
+				" WHERE department_id = ?;";
+		SqlRowSet rowSet = jdbcTemplate.queryForRowSet(query, id);
+
+		while (rowSet.next()) {
+			result.add(mapRowToEmployee(rowSet));
+		}
+		return result;
 	}
 
 	@Override
 	public List<Employee> getEmployeesWithoutProjects() {
-		return new ArrayList<>();
+		List<Employee> result = new ArrayList<>();
+		String query = "SELECT *\n" + //Ask David about this tomorrow, getting an error when we type out all of the fields
+				"FROM employee\n" +
+				"LEFT JOIN project_employee ON employee.employee_id = project_employee.employee_id\n" +
+				"WHERE project_id IS NULL;";
+		SqlRowSet rowSet = jdbcTemplate.queryForRowSet(query);
+
+		while (rowSet.next()) {
+			result.add(mapRowToEmployee(rowSet));
+		}
+		return result;
 	}
 
 	@Override
 	public List<Employee> getEmployeesByProjectId(Long projectId) {
-		return new ArrayList<>();
+		List<Employee> result = new ArrayList<>();
+		String query = "SELECT *\n" + //Ask David about this tomorrow, getting an error when we type out all of the fields
+				"FROM employee\n" +
+				"LEFT JOIN project_employee ON employee.employee_id = project_employee.employee_id\n" +
+				"WHERE project_id = ?;";
+		SqlRowSet rowSet = jdbcTemplate.queryForRowSet(query, projectId);
+
+		while (rowSet.next()) {
+			result.add(mapRowToEmployee(rowSet));
+		}
+		return result;
 	}
 
 	@Override
