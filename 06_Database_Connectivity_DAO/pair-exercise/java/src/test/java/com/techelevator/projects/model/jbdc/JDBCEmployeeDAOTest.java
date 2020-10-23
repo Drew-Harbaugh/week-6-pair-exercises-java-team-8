@@ -8,6 +8,10 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.SingleConnectionDataSource;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -55,7 +59,7 @@ public class JDBCEmployeeDAOTest {
     }
 
     @Before
-    public void setup() {
+    public void setup() throws IOException {
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
 
         jdbcTemplate.update("TRUNCATE employee CASCADE"); //remove existing data
@@ -67,6 +71,12 @@ public class JDBCEmployeeDAOTest {
             jdbcTemplate.update(sqlQuery, FIRST_NAMES[i], LAST_NAMES[i], DEPARTMENT_IDS[i], BIRTH_DATES[i], GENDERS[i], HIRE_DATES[i]);
         }
 
+//        Path sqlFile = Paths.get("database/projects.sql");
+//        String sql = new String(Files.readAllBytes(sqlFile));
+//
+//        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+//        jdbcTemplate.update(sql);
+//
         sut = new JDBCEmployeeDAO(dataSource);
     }
 
@@ -130,27 +140,33 @@ public class JDBCEmployeeDAOTest {
 
     @Test
     public void get_employees_without_projects_returns_correct_employees() {
-//        //Arrange
-//        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
-//
-//        String sqlQuery = "INSERT INTO project_employee (project_id, employee_id)" +
-//                " VALUES (?, ?);";
-//
-//        Long[] projectIdArray = new Long[] {null, (long) 1, (long) 2, (long) 6};
-//        List<Employee> allEmployees = sut.getAllEmployees();
-//
-//        for (int i = 0; i < allEmployees.size(); i++) {
-//            jdbcTemplate.update(sqlQuery, projectIdArray, allEmployees.get(i).getId());
-//        }
-//
-//        //Act
-//        List<Employee> retrieveEmployeesWithoutProjects = sut.getEmployeesWithoutProjects();
-//
-//        //Assert
+        //Act
+        List<Employee> employeesWithoutProjects = sut.getEmployeesWithoutProjects();
+
+        //Assert
+        Assert.assertEquals(4, employeesWithoutProjects.size());
+
     }
 
     @Test
-    public void get_employee_by_project_id_returns_correct_employees() {
+    public void get_employee_by_project_id_returns_correct_employees() throws IOException {
+        //Arrange
+        JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSource);
+        jdbcTemplate.update("TRUNCATE employee CASCADE"); //remove data we created in the @Before
+        jdbcTemplate.update("TRUNCATE department CASCADE"); //remove data we created in the @Before
+        jdbcTemplate.update("TRUNCATE project CASCADE"); //remove data we created in the @Before
+        jdbcTemplate.update("TRUNCATE project_employee CASCADE"); //remove data we created in the @Before
+
+        Path sqlFile = Paths.get("database/projects.sql");
+        String sql = new String(Files.readAllBytes(sqlFile));
+
+        jdbcTemplate.update(sql);
+
+        //Act
+        List<Employee> employees = sut.getEmployeesByProjectId((long) 1);
+
+        //Assert
+        Assert.assertEquals(2, employees.size());
 
     }
 
